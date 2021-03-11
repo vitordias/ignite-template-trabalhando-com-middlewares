@@ -10,19 +10,81 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+
+  const user = users.find(
+    (to) => to.username === username
+  );
+
+  if(!user){
+    return response.status(404).json({ error: "Usuário Inválido"});
+  }
+
+  request.user = user;
+
+  next();
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  const user = request.user;
+  
+  if(user.pro){
+    //Usuário Pro
+    next();
+  }else{  
+    //Valida a quantidade de registros
+    if(user.todos.length < 10){
+      next();
+    }else{
+      return response.status(403).json({error: "Atingiu o limite de tarefas, seja pro"})
+    }
+  }
+
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+  const { id } = request.params;
+
+  if(!validate(id)){
+    return response.status(400).json({ error: "Identificação Inválida"})
+  }
+
+  const user = users.find(
+    (to) => to.username === username
+  );
+
+  if(!user){
+    return response.status(404).json({ error: "Usuário Inválido"});
+  }
+
+  const todo = user.todos.find(
+    (to) => to.id === id
+  );
+
+  if(!todo){
+    return response.status(404).json({ error: "Identificação Inválida"})
+  }
+  request.user = user;
+  request.todo = todo;
+  
+  next();
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+  const { id } = request.params;
+  
+  const user = users.find(
+    (to) => to.id === id
+  );
+
+  if(!user){
+    return response.status(404).json({ error: "Usuário Inválido"});
+  }
+
+  request.user = user;
+  next();
+
 }
 
 app.post('/users', (request, response) => {
